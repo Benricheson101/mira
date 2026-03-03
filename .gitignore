@@ -1,0 +1,7 @@
+/build
+/node_modules
+*.log
+.DS_STORE
+.env
+config.toml
+/docker
