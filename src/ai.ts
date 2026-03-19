@@ -1,11 +1,17 @@
 import {createOpenRouter} from '@openrouter/ai-sdk-provider';
-import {generateText, type ModelMessage, stepCountIs} from 'ai';
+import {generateText, type ModelMessage, stepCountIs, SystemModelMessage} from 'ai';
 import {createOllama} from 'ai-sdk-ollama';
 
 import {config} from './config';
 import {webSearch} from './tools/webSearch';
+import {currentTime} from './tools/time';
 
 export type Role = 'user' | 'assistant' | 'system';
+
+const TOOLS = {
+  search_web: webSearch,
+  get_current_time: currentTime,
+};
 
 export class AIService {
   private openrouter: ReturnType<typeof createOpenRouter>;
@@ -48,37 +54,47 @@ export class AIService {
       .replaceAll('{{CHANNEL_DESCRIPTION}}', context.channelDescription)
       .replaceAll('{{MODEL}}', modelName);
 
+    const contextPrompt: SystemModelMessage = {
+      role: 'system',
+      content: [
+        '## Environment Context',
+        `- Your username: ${context.botUsername}`,
+        `- Server name: ${context.serverName}`,
+        `- Channel name: ${context.channelName}`,
+        `- Channel description: ${context.channelDescription}`,
+        `- Model: ${modelName}`,
+      ].join('\n'),
+    }
+
     const result = await generateText({
       model: (this.isLocal ? this.ollama : this.openrouter)(modelName, {}),
       system: systemPrompt,
-      messages: messages.slice(-config.model.max_history!),
+      messages: [contextPrompt, ...messages.slice(-config.model.max_history!)],
       maxOutputTokens: config.model.max_output,
-      tools: {
-        search_web: webSearch,
-      },
+      tools: TOOLS,
       stopWhen: stepCountIs(3),
     });
 
-    console.dir(result.usage, {depth: null});
+    console.dir(result, {depth: null});
 
     const toolCalls = result.toolCalls?.map(call => ({
       name: call.toolName,
       input: call.input,
     }));
 
+    if (!result.text) {
+      throw new Error('No text', {cause: result});
+    }
+
     return {
       text: result.text || 'Failed :(',
       toolCalls,
       usage: {
-        outputTokens: result.totalUsage.outputTokens,
-        inputTokens: result.totalUsage.inputTokens,
-        cost: result.steps
-          .map(s =>
-            'cost' in s.usage && typeof s.usage.cost === 'number'
-              ? s.usage.cost
-              : 0
-          )
-          .reduce((a, c) => a + c, 0),
+        in: result.totalUsage.inputTokens || 0,
+        out: result.totalUsage.outputTokens || 0,
+        reasoning: result.totalUsage.outputTokenDetails.reasoningTokens || 0,
+        cached: result.totalUsage.inputTokenDetails.cacheReadTokens || 0,
+        total: result.totalUsage.totalTokens || 0,
       },
     };
   }

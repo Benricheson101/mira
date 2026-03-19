@@ -161,16 +161,29 @@ export type SendMessageResult = {
   attachments: Attachment[];
 };
 
-export const sendMessage = async (
-  ai: AIService,
-  convo: ModelMessage[],
-  channel: TextChannel | NewsChannel | ThreadChannel,
-  response: string,
-  options?: {
-    replyTo?: Message;
-    forceThread?: boolean;
-  }
-): Promise<SendMessageResult> => {
+export const sendMessage = async ({
+  ai,
+  convo,
+  channel,
+  response,
+  replyTo,
+  forceThread,
+  usage,
+}: {
+  ai: AIService;
+  convo: ModelMessage[];
+  channel: TextChannel | NewsChannel | ThreadChannel;
+  response: string;
+  replyTo?: Message;
+  forceThread?: boolean;
+  usage: {
+    in: number;
+    out: number;
+    reasoning: number;
+    cached: number;
+    total: number;
+  };
+}): Promise<SendMessageResult> => {
   const {blocks, prose} = parseCodeBlocks(response, CODE_FILE_THRESHOLD);
 
   const files: AttachmentBuilder[] = [];
@@ -192,11 +205,7 @@ export const sendMessage = async (
   let thread: ThreadChannel | null = null;
   let targetChannel: TextChannel | NewsChannel | ThreadChannel = channel;
 
-  if (
-    messagesToSend.length >= 2 &&
-    !channel.isThread() &&
-    !options?.forceThread
-  ) {
+  if (messagesToSend.length >= 2 && !channel.isThread() && !forceThread) {
     const textOrNewsChannel = channel as TextChannel | NewsChannel;
     if ('threads' in textOrNewsChannel) {
       const threadTitle = await ai.generateTitle(convo);
@@ -213,9 +222,14 @@ export const sendMessage = async (
   const attachments: Attachment[] = [];
 
   for (let i = 0; i < messagesToSend.length; i++) {
-    const msgContent = messagesToSend[i];
     const isLast = i === messagesToSend.length - 1;
     const hasFiles = isLast && files.length > 0;
+
+    const msgContent =
+      messagesToSend[i] +
+      (isLast
+        ? `\n\n-# input: ${usage.in} tokens (${usage.in - usage.cached} uncached, ${usage.cached} cached), output: ${usage.out}`
+        : '');
 
     const msgOptions: MessageCreateOptions = {
       content: msgContent,
@@ -224,8 +238,8 @@ export const sendMessage = async (
     };
 
     let msg: Message;
-    if (i === 0 && options?.replyTo && !thread) {
-      msg = await options.replyTo.reply(msgOptions);
+    if (i === 0 && replyTo && !thread) {
+      msg = await replyTo.reply(msgOptions);
     } else {
       msg = await targetChannel.send(msgOptions);
     }

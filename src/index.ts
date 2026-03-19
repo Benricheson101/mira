@@ -133,13 +133,14 @@ discord.on('messageCreate', async msg => {
     //   threadTitle = await ai.generateTitle(convo);
     // }
 
-    const {messages: sentMessages} = await sendMessage(
+    const {messages: sentMessages} = await sendMessage({
       ai,
       convo,
-      isThreadChannel ? channel : (channel as TextChannel),
-      response.text,
-      isThreadChannel ? undefined : {replyTo: msg}
-    );
+      channel: isThreadChannel ? channel : (channel as TextChannel),
+      response: response.text,
+      replyTo: isThreadChannel ? msg : undefined,
+      usage: response.usage,
+    });
 
     const responseThreadId = channel.isThread() ? channel.id : undefined;
     let parentId = msg.id;
