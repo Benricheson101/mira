@@ -26,6 +26,19 @@ The bot includes a handful of tools that the language models can call:
 - `fetch_discord_message({channelID: string, messsageID: string})`
 - `query_server_knowledge({query: string})`
 
+## Message Format and Contextual Data
+User messages sent to the LLM are in the format `[Username: "benricheson101", Nickname: "ben"]: content`. This enables the language model to differentiate between multiple users in the same thread. The bot cannot access messages outside of its reply chain. The only exception to this is through the use of the `fetch_discord_message` tool, which lets the LLM access an outside message by its Discord ID (e.g., a user links to a message and asks for its content).
+
+Some basic contextual info is included in each thread:
+```md
+## Environment Context
+- Your username: {{BOT_USERNAME}},
+- Server name: {{SERVER_NAME}}
+- Channel name: {{CHANNEL_NAME}}
+- Channel description: {{CHANNEL_DESCRIPTION}}
+- Model: {{MODEL}}
+```
+
 ### Web Search
 Web search is provided by SearXNG. Because it's not a web scraper, it only returns limited information and not full page content. In my testing this is often sufficient for simple queries, but doesn't hold up when extensive research is required.
 
