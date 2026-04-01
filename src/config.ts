@@ -23,8 +23,9 @@ export type DiscordConfig = {
   enabled_guilds: string[];
 };
 
-export type SearXNGConfig = {
-  url: string;
+export type WebSearchConfig = {
+  searxng_url: string;
+  jina_api_key?: string;
 };
 
 export type SQLiteConfig = {
@@ -43,7 +44,7 @@ export type Config = {
   discord: DiscordConfig;
   provider: ProviderConfig;
   model: ModelConfig;
-  searxng: SearXNGConfig;
+  web_search: WebSearchConfig;
   sqlite: SQLiteConfig;
   rag: RAGConfig;
   misc: MiscConfig;

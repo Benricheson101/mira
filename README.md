@@ -100,9 +100,11 @@ image_model = ""
 # the model to use for word embeddings for the RAG tool
 embedding_model = ""
 
-[searxng]
+[web_search]
 # the searxng server url
-url = ""
+searxng_url = ""
+# api key for https://jina.ai
+jina_api_key = ""
 ```
 
 `./knowledge/<server_id>.toml`

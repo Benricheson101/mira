@@ -13,7 +13,7 @@ export const webSearch = tool({
   async execute({query}) {
     const res: {results: {title: string; url: string; content: string}[]} =
       await fetch(
-        `${config.searxng.url}/search?q=${encodeURIComponent(query)}&format=json`
+        `${config.web_search.searxng_url}/search?q=${encodeURIComponent(query)}&format=json`
       ).then(r => r.json());
 
     return (
@@ -23,5 +23,45 @@ export const webSearch = tool({
         snippet: r.content,
       })) ?? []
     ).slice(0, 10);
+  },
+});
+
+export const getPageContents = tool({
+  description:
+    'Get the full content of a website. ONLY use this tool if the snippets from your web_search tool did not provide enough information to answer the user fully or the user asks for information about a specific website. Do not use this on video, audio, or Reddit links.',
+  inputSchema: z.object({
+    url: z.url().describe('The URL to view the contents of'),
+  }),
+
+  async execute({url}) {
+    const res = await fetch(
+      `https://r.jina.ai/${encodeURIComponent(url.trim())}`,
+      {
+        headers: {
+          authorization: config.web_search.jina_api_key
+            ? `Bearer ${config.web_search.jina_api_key}`
+            : '',
+          'x-remove-selector': 'header, .class, #id',
+          'x-retain-images': 'none',
+          'x-timeout': '15',
+          'x-token-budget': '8000',
+        },
+      }
+    );
+
+    if (!res.ok) {
+      const msg = await res.text();
+      console.error('Jina failed:', msg);
+      return 'Failed to read this webpage. The site might have anti-bot protection. Rely on the search snippets or tell the user you cannot read this specific link.';
+    }
+
+    let text = await res.text();
+
+    const MAX_LENGTH = 10_000;
+    if (text.length >= MAX_LENGTH) {
+      text = `${text.slice(0, MAX_LENGTH)}\n\n[content truncated for length]`;
+    }
+
+    return text;
   },
 });

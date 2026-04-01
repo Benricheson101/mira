@@ -16,12 +16,13 @@ import type {Database, DBMessage} from './db';
 import {discordMessageTools} from './tools/discordMessage';
 import {ragTools} from './tools/rag';
 import {currentTime} from './tools/time';
-import {webSearch} from './tools/webSearch';
+import {getPageContents, webSearch} from './tools/webSearch';
 
 export type Role = 'user' | 'assistant' | 'system';
 
 const TOOLS = {
   search_web: webSearch,
+  get_page_contents: getPageContents,
   get_current_time: currentTime,
 };
 
@@ -108,6 +109,11 @@ export class AIService {
       .replaceAll('{{CHANNEL_DESCRIPTION}}', context.channelDescription)
       .replaceAll('{{MODEL}}', modelName);
 
+    const now = new Intl.DateTimeFormat('en-US', {
+      dateStyle: 'full',
+      timeZone: 'America/New_York',
+    }).format(new Date());
+
     const contextPrompt: SystemModelMessage = {
       role: 'system',
       content: [
@@ -117,6 +123,7 @@ export class AIService {
         `- Channel name: ${context.channelName}`,
         `- Channel description: ${context.channelDescription}`,
         `- Model: ${modelName}`,
+        `- Current date: ${now}`,
       ].join('\n'),
     };
 
@@ -150,7 +157,7 @@ export class AIService {
         ...ragTools(context.member, context.db, this),
       },
       stopWhen: [
-        stepCountIs(10),
+        stepCountIs(20),
         ({steps}) =>
           steps.reduce(
             (a, c) =>
@@ -158,14 +165,14 @@ export class AIService {
                 c.usage.totalTokens ||
                 0) + a,
             0
-          ) > 20_000,
+          ) > 50_000,
         ({steps}) =>
           steps.reduce(
             (a, c) =>
               ((c.providerMetadata?.openrouter?.usage as {cost?: number})
                 ?.cost || 0) + a,
             0
-          ) > 0.01,
+          ) > 0.015,
       ],
       temperature: 0.9,
       topP: 0.93,

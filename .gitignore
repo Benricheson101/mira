@@ -4,7 +4,7 @@
 .DS_STORE
 .env
 config.toml
-/docker
+/docker/searxng
 *.sqlite
 *.db
 *.sqlite3
