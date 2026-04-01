@@ -11,7 +11,7 @@ Another Discord-based LLM chatbot.
 ## Usage
 To start a new thread, mention the bot with a prompt. Reply to the bot to continue the conversation, or ping it again to start a new thread. Replying to another user's message and pinging the bot will insert the replied-to message into the conversation.
 
-```yml
+```yaml
 User: @Mira what time is it in Amsterdam
 Bot: It's 5:14PM in Amsterdam right now.
 User: What about in San Francisco?
@@ -35,6 +35,13 @@ $ pnpm build
 $ DATABASE_URL=sqlite:./db.db dbmate up
 $ pnpm mira:update-rag
 $ pnpm mira:start
+```
+
+### With Docker
+```sh
+$ docker compose up -d searxng
+$ docker compose run --rm mira mira:update-rag
+$ docker compose up -d
 ```
 
 ## Configuration

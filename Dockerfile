@@ -11,4 +11,5 @@ COPY . .
 RUN rm -rf db
 RUN pnpm build
 
-ENTRYPOINT ["pnpm", "mira:start"]
+ENTRYPOINT ["pnpm"]
+CMD ["mira:start"]
