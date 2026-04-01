@@ -42,7 +42,7 @@ Some basic contextual info is included in each thread:
 ### Web Search
 Web search is provided by SearXNG. Because it's not a web scraper, it only returns limited information and not full page content. In my testing this is often sufficient for simple queries, but doesn't hold up when extensive research is required.
 
-# Running it
+# Running It
 ```sh
 $ pnpm build
 $ DATABASE_URL=sqlite:./db/mira.sqlite3 dbmate up
@@ -111,6 +111,6 @@ url = ""
 category = "mira-faq"
 content = """
 Question: Is the bot open source?
-Answer: The bot is open source. The source code can be found on GitHub at https://github.com/Benricheson101/sloperation and is licensed under an MIT license.
+Answer: The bot is open source. The source code can be found on GitHub at https://github.com/Benricheson101/mira and is licensed under the MIT license.
 """
 ```
