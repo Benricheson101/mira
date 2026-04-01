@@ -1,15 +1,15 @@
 {
-  "name": "ai-bot",
+  "name": "@benricheson101/mira",
   "version": "1.0.0",
   "description": "",
   "main": "./build/src/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node ./build/src/index.js",
-    "dev": "tsx src/index.ts",
     "lint": "biome lint .",
     "fmt": "biome check . --write",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "mira:start": "node --enable-source-maps .",
+    "mira:update-rag": "node --enable-source-maps ./build/scripts/updateRAG.js"
   },
   "license": "MIT",
   "packageManager": "pnpm@10.30.3",
@@ -21,8 +21,6 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@ai-sdk/mcp": "^1.0.23",
-    "@ai-sdk/openai": "^3.0.38",
     "@openrouter/ai-sdk-provider": "^2.3.3",
     "ai": "^6.0.106",
     "ai-sdk-ollama": "^3.8.0",
