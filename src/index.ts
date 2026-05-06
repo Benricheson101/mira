@@ -11,7 +11,7 @@ import {
 
 import {AIService} from './ai';
 import {DiscordClient} from './client';
-import {isGuildEnabled, loadConfig} from './config';
+import {isGuildEnabled, isUserBlocked, loadConfig} from './config';
 import {Database} from './db';
 import {transcribe} from './transcribe';
 import {getAudioAttachments, hasAudioAttachment} from './util/attachments';
@@ -35,7 +35,11 @@ discord.on('messageCreate', async msg => {
       return;
     }
 
-    if (!msg.guildId || !isGuildEnabled(msg.guildId)) {
+    if (
+      !msg.guildId ||
+      !isGuildEnabled(msg.guildId) ||
+      isUserBlocked(msg.author.id)
+    ) {
       return;
     }
 
@@ -308,6 +312,10 @@ discord.on('messageUpdate', async msg => {
 
 discord.on('interactionCreate', async i => {
   try {
+    if (isUserBlocked(i.user.id)) {
+      return;
+    }
+
     if (i.isMessageContextMenuCommand()) {
       if (i.commandName === 'Transcribe') {
         // TODO: what should happen if there's more than one?

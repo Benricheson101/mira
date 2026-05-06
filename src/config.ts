@@ -23,6 +23,7 @@ export type ProviderConfig = {
 export type DiscordConfig = {
   token: string;
   enabled_guilds: string[];
+  blocked_users: string[];
 };
 
 export type WebSearchConfig = {
@@ -89,6 +90,10 @@ export const loadConfig = (path = 'config.toml', watch = true) => {
     config.discord.enabled_guilds = [];
   }
 
+  if (!config.discord.blocked_users) {
+    config.discord.blocked_users = [];
+  }
+
   if (!config.sqlite.path) {
     config.sqlite.path = ':memory:';
   }
@@ -123,3 +128,8 @@ export const isGuildEnabled = (g: string) =>
   config.discord.enabled_guilds.length
     ? config.discord.enabled_guilds.includes(g)
     : true;
+
+export const isUserBlocked = (u: string) =>
+  config.discord.blocked_users.length
+    ? config.discord.blocked_users.includes(u)
+    : false;
